@@ -1,0 +1,39 @@
+
+
+pipeline {
+    agent any
+
+    environment {
+        branch = 'master'
+        scmUrl = 'https://github.com/niranjanmushke/HelloGitWorld.git'     
+    }
+
+     stages {
+        stage ('git') {
+            steps {
+                checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false,                 ignoreDirPropChanges: false, includedRegions: '', locations: [[credentialsId: '', depthOption: 'infinity', ignoreExternalsOption: true, local: '.', remote:'https://github.com/niranjanmushke/HelloGitWorld.git']], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']])
+
+            }
+        }
+pipeline {
+    agent any
+    triggers {
+        cron 'H */2 * * *'
+      } 
+   }    
+       stage ('build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage ('test') {
+            steps {
+                parallel (
+                    "unit tests": { sh 'mvn test' },
+                    "integration tests": { sh 'mvn integration-test' }
+                )
+            }
+        }
+    
+    } 
